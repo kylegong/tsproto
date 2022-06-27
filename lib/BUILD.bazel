@@ -42,10 +42,30 @@ ts_library(
     ],
 )
 
+ts_library(
+    name = "usage_tsp",
+    srcs = ["usage_tsp.ts"],
+    deps = [
+        ":example_pb",  # change to ":example_tspb" to test rule
+        "@npm//@types/node",
+    ],
+)
+
+ts_library(
+    name = "usage_tsp_tests",
+    testonly = True,
+    srcs = ["usage_tsp_test.ts"],
+    deps = [
+        ":usage_tsp",
+        "@npm//@types/jasmine",
+    ],
+)
+
 karma_web_test_suite(
     name = "karma_tests",
     deps = [
         ":usage_tests",
+        ":usage_tsp_tests",
         "@npm//@types/google-protobuf",
         "@npm//google-protobuf:google-protobuf__umd",
     ],
@@ -56,6 +76,7 @@ jasmine_node_test(
     templated_args = ["--bazel_patch_module_resolver"],
     deps = [
         ":usage_tests",
+        ":usage_tsp_tests",
         "@npm//:node_modules",
         "@npm//material-ui:material-ui__umd",
         "@npm//react:react__umd",
