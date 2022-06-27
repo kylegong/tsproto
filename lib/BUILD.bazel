@@ -27,7 +27,7 @@ ts_library(
     name = "usage",
     srcs = ["usage.ts"],
     deps = [
-        ":example_pb",  # change to ":example_tspb" to test rule
+        ":example_pb",
         "@npm//@types/node",
     ],
 )
@@ -42,11 +42,18 @@ ts_library(
     ],
 )
 
+ts_proto_library(
+    name = "example_tsp",
+    proto_library_rule = ":example_proto",
+    proto_mod = "lib.ts.proto",
+    proto_path = "lib/ts/proto/example",
+)
+
 ts_library(
     name = "usage_tsp",
     srcs = ["usage_tsp.ts"],
     deps = [
-        ":example_pb",  # change to ":example_tspb" to test rule
+        ":example_tsp",
         "@npm//@types/node",
     ],
 )
