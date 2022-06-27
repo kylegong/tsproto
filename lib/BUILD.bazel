@@ -1,0 +1,95 @@
+load("@npm//@bazel/concatjs:index.bzl", "ts_library")
+load("//:rules.bzl", "karma_web_test_suite", "ts_proto_library")
+load("@rules_proto_grpc//js:defs.bzl", "js_proto_compile", "js_proto_library")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
+load("@npm//@bazel/jasmine:index.bzl", "jasmine_node_test")
+load("@npm//@bazel/esbuild:index.bzl", "esbuild")
+
+proto_library(
+    name = "example_proto",
+    srcs = ["example.proto"],
+)
+
+js_proto_library(
+    name = "example_js_proto_library",
+    extra_protoc_args = ["--js_out=import_style=es6,binary:."],
+    protos = [":example_proto"],
+)
+
+js_proto_compile(
+    name = "example_js_proto_compile",
+    extra_protoc_args = ["--js_out=import_style=es6,binary:."],
+    output_mode = "NO_PREFIX",
+    protos = [":example_proto"],
+)
+
+js_proto_compile(
+    name = "example_js_proto_compile_default",
+    protos = [":example_proto"],
+)
+
+js_library(
+    name = "example_js",
+    srcs = [":example_js_proto_compile"],
+)
+
+ts_library(
+    name = "example_pb",
+    package_name = "__main__/lib/example_pb",
+    srcs = [
+        "example_pb.d.ts",
+        "example_pb.ts",
+    ],
+    deps = [
+        "@npm//@types/google-protobuf",
+        "@npm//google-protobuf",
+    ],
+)
+
+# ts_proto_library(
+#     name = "example_tspb",
+#     proto_library_rule = ":example_proto",
+#     proto_mod = "lib.ts.proto",
+#     proto_path = "lib/ts/proto/example",
+# )
+
+ts_library(
+    name = "usage",
+    srcs = ["usage.ts"],
+    deps = [
+        ":example_pb",  # change to ":example_tspb" to test rule
+        "@npm//@types/node",
+    ],
+)
+
+ts_library(
+    name = "usage_tests",
+    testonly = True,
+    srcs = ["usage_test.ts"],
+    deps = [
+        ":usage",
+        "@npm//@types/jasmine",
+    ],
+)
+
+karma_web_test_suite(
+    name = "karma_tests",
+    deps = [
+        ":usage_tests",
+        "@npm//@types/google-protobuf",
+        "@npm//google-protobuf:google-protobuf__umd",
+    ],
+)
+
+jasmine_node_test(
+    name = "jasmine_tests",
+    templated_args = ["--bazel_patch_module_resolver"],
+    deps = [
+        ":usage_tests",
+        "@npm//:node_modules",
+        "@npm//material-ui:material-ui__umd",
+        "@npm//react:react__umd",
+        "@npm//react-dom:react-dom__umd",
+    ],
+)

@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+      "lib": ["es2017", "dom"],
+      "strict": true,
+      "baseUrl": ".",
+      "target": "es2015",
+      "module": "umd",
+      "moduleResolution": "classic",
+      "types": ["jasmine", "node"]
+    }
+  }
+  

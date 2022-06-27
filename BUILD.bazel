@@ -1,0 +1,71 @@
+load("@build_bazel_rules_nodejs//internal/npm_install:npm_umd_bundle.bzl", "npm_umd_bundle")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files(
+    ["tsconfig.json"],
+)
+
+# karma_web_test_suite needs to import different modules with global
+# names. For example, the React module at 'react', and Material UI Styles
+# at 'material-ui/styles'. There are a few problems though.
+
+# By default, bazel will generate a npm_umd_bundle() rule for each npm
+# package, based off info from its package.json. This is problematic for
+# material-ui which has two entrypoints (index.js & styles/index.js). So,
+# we need to manually craft our own npm_umd_bundle() rules for these.
+
+# Furthermore, these are bundles, which causes some problems. Firstly,
+# the dependent modules within these bundles (e.g. react-dom depends on
+# react), are not themselves exported as modules. Also, they are deep
+# copies. This causes multiple problems.
+
+# Since the dependent modules are not exported, that means that code
+# that tries to use them will fail to import them. This manifests as a
+# 404, since if the symbol does not exist, import will trigger a URL
+# fetch. That's annoying since that means we need to generate a UMD
+# bundle for each module that needs to be exported.
+# But if we have a UMD bundle for each module that needs to be
+# exported, that means we may end up with multiple copies of modules
+# across the bundles. material-ui, material-ui-styles, and react-dom
+# will all have a copy of react. This causes problems for react. This
+# might also cause problems for other dependencies in the future.
+# Our solution here is we include our own npm_umd_bundle() rules to create
+# them UMD bundles exactly how we want them. We can create a
+# material-ui-styles UMD bundle from the same npm package (material-ui),
+# using the different entrypoint (styles/index.js). Additionally, we can
+# exclude dependencies from getting included in the UMD bundle.
+# npm_umd_bundle() has an excluded attribute, so we can make sure we
+# exclude react-dom and react as needed, to make sure we only have 1 copy
+# of each of those packages.
+npm_umd_bundle(
+    name = "material-ui__umd",
+    package_name = "material-ui",
+    entry_point = "@npm//:node_modules/material-ui/index.es.js",
+    excluded = [
+        "react",
+        "react-dom",
+    ],
+    package = "@npm//material-ui:material-ui",
+)
+
+npm_umd_bundle(
+    name = "material-ui-styles__umd",
+    package_name = "material-ui/styles",
+    entry_point = "@npm//:node_modules/material-ui/styles/index.js",
+    excluded = [
+        "react",
+        "react-dom",
+    ],
+    package = "@npm//material-ui:material-ui",
+)
+
+npm_umd_bundle(
+    name = "react-dom__umd",
+    package_name = "react-dom",
+    entry_point = "@npm//:node_modules/react-dom/index.js",
+    excluded = [
+        "react",
+    ],
+    package = "@npm//react-dom",
+)
