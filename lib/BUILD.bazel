@@ -11,32 +11,8 @@ proto_library(
     srcs = ["example.proto"],
 )
 
-js_proto_library(
-    name = "example_js_proto_library",
-    extra_protoc_args = ["--js_out=import_style=es6,binary:."],
-    protos = [":example_proto"],
-)
-
-js_proto_compile(
-    name = "example_js_proto_compile",
-    extra_protoc_args = ["--js_out=import_style=es6,binary:."],
-    output_mode = "NO_PREFIX",
-    protos = [":example_proto"],
-)
-
-js_proto_compile(
-    name = "example_js_proto_compile_default",
-    protos = [":example_proto"],
-)
-
-js_library(
-    name = "example_js",
-    srcs = [":example_js_proto_compile"],
-)
-
 ts_library(
     name = "example_pb",
-    package_name = "__main__/lib/example_pb",
     srcs = [
         "example_pb.d.ts",
         "example_pb.ts",
@@ -46,13 +22,6 @@ ts_library(
         "@npm//google-protobuf",
     ],
 )
-
-# ts_proto_library(
-#     name = "example_tspb",
-#     proto_library_rule = ":example_proto",
-#     proto_mod = "lib.ts.proto",
-#     proto_path = "lib/ts/proto/example",
-# )
 
 ts_library(
     name = "usage",

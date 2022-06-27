@@ -2,7 +2,7 @@
  * @fileoverview Example of proto building, using example.proto
  */
 
- import { Example } from "__main__/lib/example_pb";
+ import { Example } from "./example_pb";
 
  /** Create a new Example */
  export function newExample(foo: string, bar: number): Example {
